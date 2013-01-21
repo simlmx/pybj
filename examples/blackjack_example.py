@@ -1,6 +1,6 @@
-from pycards.blackjack import Player, Dealer, Table
-from pycards.blackjack.players import SimplePlayer, InteractivePlayer
-from pycards import Deck
+from pybj.blackjack import Player, Dealer, Table
+from pybj.blackjack.players import SimplePlayer, InteractivePlayer
+from pybj import Deck
 
 import logging
 logging.basicConfig(level='DEBUG')
