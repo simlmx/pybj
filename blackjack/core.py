@@ -220,7 +220,6 @@ class Player(object):
         del self.hands[hand_idx]
 
     def loose(self, hand_idx=0):
-        self.stash -= self._bet[hand_idx]
         del self._bet[hand_idx]
         del self.hands[hand_idx]
 
