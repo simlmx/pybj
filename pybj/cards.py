@@ -4,6 +4,8 @@ from itertools import product
 import logging
 logger = logging.getLogger(__name__)
 
+__all__ = ['Card', 'Deck']
+
 class Card(object):
     _color_names = {
         'S': 'spades',
@@ -35,8 +37,6 @@ class Card(object):
         name += self._color_names[self.color]
         return name
     __repr__ = __str__
-
-
 
 
 class Deck(object):
