@@ -1,6 +1,5 @@
 import unittest
-from ..blackjack import Hand, Player
-from ..cards import Card
+from pybj import Hand, Player, Card
 
 
 class TestBlackJack(unittest.TestCase):

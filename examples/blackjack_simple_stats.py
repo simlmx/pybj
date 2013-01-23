@@ -1,7 +1,6 @@
 import sys
 from itertools import combinations_with_replacement, product
-from pycards import Deck, Card
-from pycards.blackjack import Hand, Player, Dealer
+from pybj import Deck, Card, Hand, Player, Dealer
 
 nb_runs = int(sys.argv[1])
 

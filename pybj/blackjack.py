@@ -1,4 +1,4 @@
-from ..cards import Card
+from .cards import Card
 import logging
 logger = logging.getLogger(__name__)
 

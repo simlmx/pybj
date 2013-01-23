@@ -1,5 +1,5 @@
 import unittest
-from ..cards import Deck
+from pybj import Deck
 
 
 class TestCards(unittest.TestCase):

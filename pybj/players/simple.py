@@ -1,4 +1,4 @@
-from ..core import Player
+from pybj import Player
 
 
 class SimplePlayer(Player):
