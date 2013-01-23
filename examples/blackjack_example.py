@@ -4,7 +4,7 @@ from pybj.players import SimplePlayer, InteractivePlayer
 import logging
 logging.basicConfig(level='INFO')
 
-players = [SimplePlayer()]
+players = [SimplePlayer(), InteractivePlayer()]
 dealer = Dealer()
 #deck = Deck(symbols = ['A', '10', '8'])
 deck = Deck()

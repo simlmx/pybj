@@ -8,12 +8,8 @@ class SimplePlayer(Player):
         dealer_symbol = self.table.dealer.visible_card.symbol
         high = dealer_symbol in '7 8 9 10 J Q K A'.split()
 
-        # TODO Make these can_* in the original Player
-        can_double = len(hand.cards) == 2
-        if not self.table.rules['double_after_split'] and hand.is_split:
-            can_double = False
-        # TODO next line
-        can_split = True
+        can_double = self.table.can_double(hand)
+        can_split = self.table.can_split(hand)
 
         # Pair
         if hand.pair:

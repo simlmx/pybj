@@ -243,6 +243,7 @@ class Player(object):
         pass
 
 
+# TODO put the dealer *in* the table, so it doesn't require self.table
 class Dealer(Player):
 
     def play(self, hand_idx=0):
@@ -278,7 +279,6 @@ class Table(object):
         self.deck = deck
         self.rules = dict(default_rules)
         self.rules.update(rules)
-
 
     def turn(self):
         logger.info('Dealing')
@@ -317,6 +317,10 @@ class Table(object):
                         h.hit(self.deck.deal_one())
                         logger.info('  Hits')
                         log_hand(h)
+                        if h.bust:
+                            logger.info('  Busts')
+                            i += 1
+                            break
                     elif action == 'split':
                         p.hands[i].hit(self.deck.deal_one())
                         p.hands[i + 1].hit(self.deck.deal_one())
@@ -365,4 +369,18 @@ class Table(object):
                     logger.info(' Ties {} vs {}'.format(h, self.dealer.hand))
             logger.info(' Stash is now ${:.2f}'.format(p.stash))
 
+    def can_split(self, hand):
+        # FIXME not as simple
+        return hand.pair
 
+    def can_surrender(self, hand=None):
+        # FIXME not as simple
+        return self.rules['surrender']
+
+    def can_double(self, hand):
+        # FIXME not as simple
+        if len(hand.cards) != 2:
+            return False
+        if hand.is_split and not self.rules['double_after_split']:
+            return False
+        return True
