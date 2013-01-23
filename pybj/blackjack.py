@@ -57,6 +57,8 @@ class Hand(object):
         """ Here "soft" means a hand for which `self.sum - 10` is also a valid
             value for the hand.
         """
+        if self.blackjack:  # Special case that looks soft but is not.
+            return False
         soft_sum, has_aces = self._soft_sum()
         if has_aces and soft_sum + 10 <= 21:
             return True
@@ -168,7 +170,7 @@ class Player(object):
 
     hand = property(_get_hand, _set_hand, doc="Get/sets the player's hand *when he has only one*.")
 
-    def ask(self, hand_idx=0):
+    def play(self, hand_idx=0):
         """ Ask what to do for the players' "hand_idx" hand.
             This is what you want to override for custom strategies
 
@@ -182,6 +184,7 @@ class Player(object):
             return 'stand'
 
     def bet(self, amount=None):
+        # TODO `amount` might now make any sense. The player should decide.
         """ Bet something to receive cards. Your might want to override this
             if you want some betting strategy.
         """
@@ -205,6 +208,9 @@ class Player(object):
         new_hands = hand.split()
         self.hands.insert(hand_idx, new_hands[0])
         self.hands.insert(hand_idx, new_hands[1])
+        if self.stash - self._bet[hand_idx] < 0.:
+            raise ValueError('Not enough money to split')
+        self.stash -= self._bet[hand_idx]
         self._bet.insert(hand_idx, self._bet[hand_idx])
         return 'split'
 
@@ -239,7 +245,7 @@ class Player(object):
 
 class Dealer(Player):
 
-    def ask(self, hand_idx=0):
+    def play(self, hand_idx=0):
         if self.hand.sum < 17:
             return 'hit'
         if self.hand.sum == 17 and self.hand.soft and \
@@ -273,53 +279,62 @@ class Table(object):
         self.rules = dict(default_rules)
         self.rules.update(rules)
 
+
     def turn(self):
-        logger.debug('starting turn')
+        logger.info('Dealing')
         # Deal first cards
         self.dealer.hand = self.deck.deal(2)
-        logger.debug('The dealer as a {} (visible) and a {} (hidden)'.format(
-            self.dealer.hand[0], self.dealer.hand[1]))
+        logger.info(' The dealer as a {}'.format(self.dealer.hand[0]))
+        logger.debug(' And a hidden {}'.format(self.dealer.hand[1]))
         for i, p in enumerate(self.players):
             b = p.bet()
-            logger.debug('Player {} bet {:.2f}$'.format(i, b))
+            logger.info(' Player {}'.format(i))
             p.hand = self.deck.deal(2)
-            logger.debug('Player {} received a {}'.format(i, p.hand.name))
+            logger.info('  Bets {:.2f}'.format(b))
+            logger.info('  Receives a {} ({})'.format(p.hand.cards, p.hand))
+
+        def log_hand(h):
+            logger.info(' Hand is {} ({})'.format(h.cards, h))
 
         # Players (and than dealer) play
         players_and_dealer = self.players + [self.dealer]
         for k in xrange(len(players_and_dealer)):
             p = players_and_dealer[k]
             if k == len(self.players):
-                k = 'dealer'
-            logger.debug('Player {}\'s turn'.format(k))
+                logger.info('Dealer')
+            else:
+                logger.info('Player {}'.format(k))
             i = 0
             while i < len(p.hands):
                 h = p.hands[i]
                 action = 'hit'
                 if len(p.hands) > 1:
-                    logger.debug('Hand {}'.format(i))
+                    logger.info(' Hand {}'.format(i))
+                log_hand(h)
                 while action == 'hit':
-                    action = p.ask(i)
+                    action = p.play(i)
                     if action == 'hit':
                         h.hit(self.deck.deal_one())
-                        logger.debug('Hit: hand is now {}'.format(h))
+                        logger.info('  Hits')
+                        log_hand(h)
                     elif action == 'split':
                         p.hands[i].hit(self.deck.deal_one())
                         p.hands[i + 1].hit(self.deck.deal_one())
-                        logger.debug('Splits')
+                        logger.info('  Splits')
                     elif action == 'surrender':
                         if not self.rules['surrender_allowed']:
                             raise ValueError('Surrender not allowed')
-                        logger.debug('Surrenders')
+                        logger.info('  Surrenders')
                         i += 1
                     elif action == 'double':
                         if len(h.cards) != 2 or h.is_split:
                             raise ValueError('You can only double on your initial hand.')
                         h.hit(self.deck.deal_one())
-                        logger.debug('Doubles: hand is now {}'.format(h))
+                        logger.info('  Doubles')
+                        log_hand(h)
                         i += 1
                     elif action == 'stand':
-                        logger.debug('Stands')
+                        logger.info('  Stands')
                         i += 1
                     else:
                         raise NotImplementedError(
@@ -327,7 +342,7 @@ class Table(object):
 
         # Resolve bets
         for k,p in enumerate(self.players):
-            logger.debug('Player {}\'s resolution'.format(k))
+            logger.info('Player {}\'s resolution'.format(k))
             # Remember that Every resolution removes the hand
             while len(p.hands) > 0:
                 h = p.hands[0]
@@ -335,19 +350,19 @@ class Table(object):
                     logger.debug('Hand {}'.format(0))
                 if h.bust:
                     p.loose(0)
-                    logger.debug('Busts with {}.'.format(h))
+                    logger.info(' Busts with {}.'.format(h))
                 elif h < self.dealer.hand:
                     p.loose(0)
-                    logger.debug('Looses {}'.format(h))
+                    logger.info(' Looses {} vs {}'.format(h, self.dealer.hand))
                 elif h.blackjack and not self.dealer.hand.blackjack:
                     p.win(0, self.rules['gain_for_blackjack'])
-                    logger.debug('Wins with {}'.format(h))
+                    logger.info(' Wins {} vs {}'.format(h, self.dealer.hand))
                 elif h > self.dealer.hand:
                     p.win(0)
-                    logger.debug('Wins with {}'.format(h))
+                    logger.info(' Wins {} vs {}'.format(h, self.dealer.hand))
                 else:
                     p.tie(0)
-                    logger.debug('Ties with {}'.format(h))
-                logger.debug('Stash is now ${:.2f}'.format(p.stash))
+                    logger.info(' Ties {} vs {}'.format(h, self.dealer.hand))
+            logger.info(' Stash is now ${:.2f}'.format(p.stash))
 
 

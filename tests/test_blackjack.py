@@ -20,6 +20,7 @@ class TestBlackJack(unittest.TestCase):
         self.assertTrue(hbust.bust)
         self.assertFalse(h21.bust)
         self.assertTrue(ha3.soft)
+        self.assertFalse(hbj.soft)
         self.assertTrue(hbj.blackjack)
         self.assertTrue(hpair.pair)
         self.assertFalse(hbust.pair)
@@ -54,6 +55,20 @@ class TestBlackJack(unittest.TestCase):
         player.hand = hand
         player.win(how_many_times_your_bet=2)
         self.assertEqual(player.stash, stash + 20)
+
+        # with two hands
+        hand = Hand(Card(10), Card('J'))
+        player.stash = 10.
+        player.bet()
+        player.hand = hand
+        player._split()
+        self.assertEqual(player.stash, 0.)
+        player.hands[0].hit(Card(5))
+        player.hands[1].hit(Card(4))
+        player.win()  # hand 0
+        player.loose()  # hand 1 becomes hand 0 because it is deleted when finished
+        self.assertEqual(player.stash, 10.)
+
 
 
 

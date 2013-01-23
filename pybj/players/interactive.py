@@ -3,7 +3,7 @@ from pybj import Player
 
 class InteractivePlayer(Player):
     """You are the player!"""
-    def ask(self, hand_idx=0):
+    def play(self, hand_idx=0):
         hand = self.hands[hand_idx]
         cards = hand.cards
         cards_str = ', '.join(map(str, cards))

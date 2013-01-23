@@ -3,7 +3,7 @@ from pybj import Player
 
 class SimplePlayer(Player):
     """ Simple strategy from http://wizardofodds.com/games/blackjack """
-    def ask(self, hand_idx=0):
+    def play(self, hand_idx=0):
         hand = self.hands[hand_idx]
         dealer_symbol = self.table.dealer.visible_card.symbol
         high = dealer_symbol in '7 8 9 10 J Q K A'.split()
@@ -32,10 +32,10 @@ class SimplePlayer(Player):
         # Here we don't have a pair
         # Soft hand?
         if hand.soft:
-            if hand.sum >= 13:
-                return 'hit'
-            elif hand.sum >= 19:
+            if hand.sum >= 19:
                 return 'stand'
+            elif hand.sum >= 13:
+                return 'hit'
             else:
                 if not high and can_double:
                     return self._double(hand_idx)
