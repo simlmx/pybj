@@ -307,6 +307,9 @@ class Table(object):
             i = 0
             while i < len(p.hands):
                 h = p.hands[i]
+                if h.sum == 21:
+                    i += 1
+                    break
                 action = 'hit'
                 if len(p.hands) > 1:
                     logger.info(' Hand {}'.format(i))
