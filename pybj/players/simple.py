@@ -30,7 +30,7 @@ class SimplePlayer(Player):
         if hand.soft:
             if hand.sum >= 19:
                 return 'stand'
-            elif hand.sum >= 13:
+            elif hand.sum <= 13:
                 return 'hit'
             else:
                 if not high and can_double:
