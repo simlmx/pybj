@@ -1,7 +1,10 @@
 pybj
 ====
 
-Blackjack simulator written in python
+Blackjack simulator written in python.
+
+Work in progress that might never be finished...
+
 
 
 installation
